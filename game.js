@@ -90,82 +90,50 @@ window.onload = function() {
 					  Crafty.e("2D, DOM, image, parallax").image("layer3.png").parallax(0.7)];
 
 		Crafty.c("enemy_encounter", {
-			time: 6000,
-			fight_time: 2500,
-			flee_time: 10000,
-			victory: function() {
-				var now = new Date().getTime();
-				if(now - this.start_time >= this.fight_time)
-				{
-					this.unbind("enterframe");
-					this.start_time = now;
-					
-					Crafty("enemy").destroy();
-					guy.tween({x:guy.x-20},200);
-					Crafty("parallax").start();
-					this.start(Crafty.randRange(5000,10000));
-				}
-			},
-			flee: function() {
-				var now = new Date().getTime();
-				if(now - this.start_time >= this.fight_time)
-				{
-					this.unbind("enterframe");
-					this.start_time = now;
-										
-					guy.stop()
-						.animate("walk_left",15,-1)
-						.tween({x:guy.x-20},100);
-					Crafty("enemy Tween").tween({x:90},150);
-					Crafty("parallax").start(-1);
-					
-					this.bind("enterframe",function() {
-						var now = new Date().getTime();
-						if(now - this.start_time >= this.flee_time)
-						{
-							this.unbind("enterframe");
-							this.start_time = now;
-							guy.stop()
-								.animate("walk_right",20,-1);
-							Crafty("parallax").stop().start(-1);
-							Crafty("enemy").destroy();
-							this.start(Crafty.randRange(5000,10000));
-						}
-					});
-				}
-			},
-			start: function(time)
+			start: function(time,player)
 			{
-				if(time) this.time = time;
-				this.start_time = new Date().getTime();
-				
-				this.bind("enterframe",function() {
-					var now = new Date().getTime();
-					if(now - this.start_time >= this.time)
-					{
-						this.unbind("enterframe");
-						this.start_time = now;
-
+				var fight_time = 2500;
+				var flee_time = 10000;
+				this.each(function() {
+					Crafty.delay(time,function() {
 						Crafty("parallax").stop();
-						Crafty("enemy").destroy();
-						this.enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
+						var enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
 							.attr({x:90,y:5,z:1})
 							.animate("walk_left",1,0,4)
 							.animate("walk_left",20,-1)
 							.tween({x:40}, 40);
-						guy.tween({x:guy.x+20},40);
-						if(Crafty.randRange(1,1) == 1) {
-							this.bind("enterframe",this.flee);
+						player.tween({x:player.x+20},40);
+						if(Crafty.randRange(1,3) == 2) {
+							// Flee
+							Crafty.delay(fight_time,function() {
+								player.stop()
+									.animate("walk_left",15,-1)
+									.tween({x:player.x-20},100);
+								enemy.tween({x:90},150);
+								Crafty("parallax").start(-1);
+
+								Crafty.delay(flee_time, function() {
+									player.stop().animate("walk_right",20,-1);
+									Crafty("parallax").stop().start(-1);
+									enemy.destroy();
+									Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
+								});
+							});
 						} else {
-							this.bind("enterframe",this.victory);
+							// Victory
+							Crafty.delay(fight_time,function() {
+								enemy.destroy();
+								player.tween({x:player.x-20},200);
+								Crafty("parallax").start();
+								Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
+							});
 						}
-					}
-					return this;
+					});
 				});
 				return this;
 			},
 		});
 		
-		var enemy_encounter = Crafty.e("enemy_encounter").start(5000);
+		var enemy_encounter = Crafty.e("enemy_encounter").start(5000,guy);
 	});
 };
