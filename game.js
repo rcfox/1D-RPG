@@ -24,15 +24,15 @@ window.onload = function() {
 		},
 	});
 
-	Crafty.sprite(28, "guy.png", {
+	Crafty.sprite(28, "sprites.png", {
 		player: [0,0],
-		enemy: [0,0],
+		enemy: [0,2],
 	});
 	
 	//the loading screen that will display while our assets load
 	Crafty.scene("loading", function() {
 		//load takes an array of assets and a callback when complete
-		Crafty.load(["guy.png","layer0.png","layer1.png","layer2.png","layer3.png",], function() {
+		Crafty.load(["sprites.png","layer0.png","layer1.png","layer2.png","layer3.png",], function() {
 			Crafty.scene("main"); //when everything is loaded, run the main scene
 		});
 		//black background with some loading text
@@ -82,6 +82,7 @@ window.onload = function() {
 			.attr({x:0,y:5,z:1})
 			.animate("walk_right",6,0,9)
 			.animate("walk_left",1,0,4)
+			.animate("attack_right",0,1,2)
 			.animate("walk_right",20,-1);
 		
 		var layers = [Crafty.e("2D, DOM, image").image("layer0.png"),
@@ -99,16 +100,20 @@ window.onload = function() {
 						Crafty("parallax").stop();
 						var enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
 							.attr({x:90,y:5,z:1})
-							.animate("walk_left",1,0,4)
+							.animate("walk_left",1,2,4)
 							.animate("walk_left",20,-1)
 							.tween({x:40}, 40);
-						player.tween({x:player.x+20},40);
-						if(Crafty.randRange(1,3) == 2) {
+						player.tween({x:player.x+22},40);
+						Crafty.delay(800,function() {
+							player.stop()
+								.animate("attack_right",10,-1);
+						});
+						if(Crafty.randRange(1,3) == 1) {
 							// Flee
 							Crafty.delay(fight_time,function() {
 								player.stop()
 									.animate("walk_left",15,-1)
-									.tween({x:player.x-20},100);
+									.tween({x:player.x-22},100);
 								enemy.tween({x:90},150);
 								Crafty("parallax").start(-1);
 
@@ -123,7 +128,9 @@ window.onload = function() {
 							// Victory
 							Crafty.delay(fight_time,function() {
 								enemy.destroy();
-								player.tween({x:player.x-20},200);
+								player.stop()
+									.animate("walk_right",20,-1)
+									.tween({x:player.x-22},200);
 								Crafty("parallax").start();
 								Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
 							});
