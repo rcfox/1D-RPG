@@ -3,6 +3,27 @@ window.onload = function() {
 	Crafty.init(88,31);
 	Crafty.canvas();
 
+	Crafty.extend({
+		__delay_entities: [],
+		delay: function(time,callback) {
+			this.__delay_entities.push(Crafty.e().attr({
+				start_time: new Date().getTime(),
+				delay_time: time,
+				index: this.__delay_entities.length,
+			}).bind("enterframe",function() {
+				var now = new Date().getTime();
+				if(now - this.start_time >= this.delay_time) {
+					this.unbind("enterframe");
+					Crafty.__delay_entities.splice(this.index,1);
+					for(var i = this.index; i < Crafty.__delay_entities.length; ++i) {
+						Crafty.__delay_entities[i].index--;
+					}
+					callback();
+				}
+			}));
+		},
+	});
+
 	Crafty.sprite(28, "guy.png", {
 		player: [0,0],
 		enemy: [0,0],
@@ -14,7 +35,6 @@ window.onload = function() {
 		Crafty.load(["guy.png","layer0.png","layer1.png","layer2.png","layer3.png",], function() {
 			Crafty.scene("main"); //when everything is loaded, run the main scene
 		});
-		
 		//black background with some loading text
 		Crafty.background("#000");
 		Crafty.e("2D, DOM, Text").attr({w: 88, h: 31, x: 0, y: 0})
