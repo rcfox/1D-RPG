@@ -21,6 +21,7 @@ window.onload = function() {
 					callback();
 				}
 			}));
+			return this;
 		},
 		delay_frames: function(frames,callback) {
 			this.__delay_entities.push(Crafty.e().attr({
@@ -38,6 +39,7 @@ window.onload = function() {
 					callback();
 				}
 			}));
+			return this;
 		}
 	});
 
@@ -45,20 +47,24 @@ window.onload = function() {
 		player: [0,0],
 		enemy: [0,2]
 	});
-	
+
 	//the loading screen that will display while our assets load
 	Crafty.scene("loading", function() {
 		//load takes an array of assets and a callback when complete
-		Crafty.load(["sprites.png","layer0.png","layer1.png","layer2.png","layer3.png"], function() {
-			Crafty.scene("main"); //when everything is loaded, run the main scene
-		});
+		Crafty.load(["sprites.png",
+					 "layer0.png","layer1.png","layer2.png","layer3.png",
+					 "sword.png","sword-glow.png",
+					 "shield.png","shield-glow.png",
+					 "flee.png","flee-glow.png"], function() {
+						 Crafty.scene("main"); //when everything is loaded, run the main scene
+					 });
 		//black background with some loading text
 		Crafty.background("#000");
 		Crafty.e("2D, DOM, Text").attr({w: 88, h: 31, x: 0, y: 0})
 			.text("Loading")
 			.css({"text-align": "center"});
 	});
-	
+
 	Crafty.scene("loading");
 
 	Crafty.scene("main",function() {
@@ -95,17 +101,66 @@ window.onload = function() {
 			}
 		});
 
-		var guy = Crafty.e("2D, DOM, player, Animate, Tween")
-			.attr({x:0,y:5,z:1})
-			.animate("walk_right",6,0,9)
-			.animate("walk_left",1,0,4)
-			.animate("attack_right",0,1,2)
-			.animate("walk_right",20,-1);
-		
 		var layers = [Crafty.e("2D, DOM, image").image("layer0.png"),
 					  Crafty.e("2D, DOM, image, parallax").image("layer1.png").parallax(0.2),
 					  Crafty.e("2D, DOM, image, parallax").image("layer2.png").parallax(0.5),
 					  Crafty.e("2D, DOM, image, parallax").image("layer3.png").parallax(0.7)];
+
+		var guy = Crafty.e("2D, DOM, player, Animate, Tween")
+		  .attr({x:0,y:5,z:1})
+		  .animate("walk_right",6,0,9)
+		  .animate("walk_left",1,0,4)
+		  .animate("attack_right",0,1,2)
+		  .animate("walk_right",20,-1);
+
+		Crafty.c("Icon", {
+			_name: "",
+			selected: false,
+			icon: function(name,selected) {
+				this._name = name;
+				if(selected) this.selected = selected;
+				if(!this.has("Mouse")) this.addComponent("Mouse");
+				if(!this.has("Image")) this.addComponent("Image");
+				this.addComponent("Icon-"+name);
+
+				this.image(this._name+".png");
+				this.bind("mousedown", function() {
+					Crafty("Icon").select(false);
+					this.select(true);
+				});
+				return this;
+			},
+			select: function(is_selected)
+			{
+				this.each(function() {
+					if(is_selected != undefined) this.selected = is_selected;
+
+					if(this.selected) {
+						this.image(this._name+"-glow.png");
+					}
+					else {
+						this.image(this._name+".png");
+					}
+				});
+				return this;
+			}
+		});
+
+		var sword_icon = Crafty.e("2D, DOM, Icon").icon("sword")
+		  .bind("enterframe",function() {
+			  this.attr({x: guy.x+2, y: guy.y-2});
+		  });
+
+
+		var shield_icon = Crafty.e("2D, DOM, Icon").icon("shield")
+		  .bind("enterframe",function() {
+			  this.attr({x: sword_icon.x+sword_icon.w, y: guy.y-2});
+		  });
+
+		var flee_icon = Crafty.e("2D, DOM, Icon").icon("flee")
+		  .bind("enterframe",function() {
+			  this.attr({x: shield_icon.x+shield_icon.w, y: guy.y-2});
+		  });
 
 		Crafty.c("enemy_encounter", {
 			start: function(time,player)
@@ -116,16 +171,16 @@ window.onload = function() {
 					Crafty.delay_time(time,function() {
 						Crafty("parallax").stop();
 						var enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
-							.attr({x:90,y:5,z:1})
-							.animate("walk_left",1,2,4)
-							.animate("walk_left",20,-1)
-							.tween({x:40}, 40);
+										.attr({x:90,y:5,z:1})
+										.animate("walk_left",1,2,4)
+										.animate("walk_left",20,-1)
+										.tween({x:40}, 40);
 						player.tween({x:player.x+22},40);
 						Crafty.delay_frames(40,function() {
 							player.stop()
 								.animate("attack_right",10,-1);
 						});
-						if(Crafty.randRange(1,3) == 1) {
+						if(Crafty(Crafty("Icon-flee")[0]).selected) {
 							// Flee
 							Crafty.delay_time(fight_time,function() {
 								player.stop()
@@ -141,7 +196,7 @@ window.onload = function() {
 									Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
 								});
 							});
-						} else {
+						} else if(Crafty(Crafty("Icon-sword")[0]).selected) {
 							// Victory
 							Crafty.delay_time(fight_time,function() {
 								enemy.destroy();
@@ -157,7 +212,7 @@ window.onload = function() {
 				return this;
 			}
 		});
-		
+
 		var enemy_encounter = Crafty.e("enemy_encounter").start(5000,guy);
 	});
 };
