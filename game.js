@@ -55,7 +55,8 @@ window.onload = function() {
 					 "layer0.png","layer1.png","layer2.png","layer3.png",
 					 "sword.png","sword-glow.png",
 					 "shield.png","shield-glow.png",
-					 "flee.png","flee-glow.png"], function() {
+					 "flee.png","flee-glow.png",
+					 "bar-outline.png","bar-filling.png"], function() {
 						 Crafty.scene("main"); //when everything is loaded, run the main scene
 					 });
 		//black background with some loading text
@@ -146,13 +147,13 @@ window.onload = function() {
 			}
 		});
 
-		var sword_icon = Crafty.e("2D, DOM, Icon").icon("sword")
+		var sword_icon = Crafty.e("2D, DOM, Icon").icon("sword").select(true)
 		  .bind("enterframe",function() {
 			  this.attr({x: guy.x+2, y: guy.y-2});
 		  });
 
 
-		var shield_icon = Crafty.e("2D, DOM, Icon").icon("shield")
+		var shield_icon = Crafty.e("2D, DOM, Image").image("shield.png")
 		  .bind("enterframe",function() {
 			  this.attr({x: sword_icon.x+sword_icon.w, y: guy.y-2});
 		  });
@@ -161,6 +162,42 @@ window.onload = function() {
 		  .bind("enterframe",function() {
 			  this.attr({x: shield_icon.x+shield_icon.w, y: guy.y-2});
 		  });
+
+		Crafty.c("HealthBar", {
+			_outline: null,
+			_max_height: 0,
+			_orig_y: 0,
+			health_bar: function(x,y,width, height, image) {
+				this.x = x;
+				this.y = y;
+				this.w = width;
+				this.h = height;
+				this.image(image,"repeat");
+				this._max_height = height;
+				this._orig_y = y;
+				return this;
+			},
+			update: function(ratio) {
+				this.each(function() {
+					this.h = this._max_height * ratio;
+					this.y = this._orig_y + this._max_height * (1-ratio);
+				});
+				return this;
+			}
+		});
+
+		var health_bar = Crafty.e("2D, DOM, Image, HealthBar")
+		  .health_bar(guy.x+2,guy.y+9,3,15,"bar-filling.png")
+		  .bind("enterframe",function() {
+			  this.attr({x: guy.x+2});
+		  });
+
+		var health_bar_frame = Crafty.e("2D, DOM, Image").image("bar-outline.png")
+		  .bind("enterframe",function() {
+			  this.attr({x: guy.x+2, y: guy.y+8});
+		  });
+
+		var health = 1.0;
 
 		Crafty.c("enemy_encounter", {
 			start: function(time,player)
@@ -188,6 +225,8 @@ window.onload = function() {
 									.tween({x:player.x-22},100);
 								enemy.tween({x:90},150);
 								Crafty("parallax").start(-1);
+								health -= 0.1;
+								health_bar.update(health);
 
 								Crafty.delay_time(flee_time, function() {
 									player.stop().animate("walk_right",20,-1);
@@ -199,6 +238,8 @@ window.onload = function() {
 						} else if(Crafty(Crafty("Icon-sword")[0]).selected) {
 							// Victory
 							Crafty.delay_time(fight_time,function() {
+								health -= 0.25;
+								health_bar.update(health);
 								enemy.destroy();
 								player.stop()
 									.animate("walk_right",20,-1)
