@@ -9,7 +9,7 @@ window.onload = function() {
 			this.__delay_entities.push(Crafty.e().attr({
 				start_time: new Date().getTime(),
 				delay_time: time,
-				index: this.__delay_entities.length,
+				index: this.__delay_entities.length
 			}).bind("enterframe",function() {
 				var now = new Date().getTime();
 				if(now - this.start_time >= this.delay_time) {
@@ -21,18 +21,18 @@ window.onload = function() {
 					callback();
 				}
 			}));
-		},
+		}
 	});
 
 	Crafty.sprite(28, "sprites.png", {
 		player: [0,0],
-		enemy: [0,2],
+		enemy: [0,2]
 	});
 	
 	//the loading screen that will display while our assets load
 	Crafty.scene("loading", function() {
 		//load takes an array of assets and a callback when complete
-		Crafty.load(["sprites.png","layer0.png","layer1.png","layer2.png","layer3.png",], function() {
+		Crafty.load(["sprites.png","layer0.png","layer1.png","layer2.png","layer3.png"], function() {
 			Crafty.scene("main"); //when everything is loaded, run the main scene
 		});
 		//black background with some loading text
@@ -75,7 +75,7 @@ window.onload = function() {
 					this.unbind("enterframe");
 				});
 				return this;
-			},
+			}
 		});
 
 		var guy = Crafty.e("2D, DOM, player, Animate, Tween")
@@ -138,7 +138,7 @@ window.onload = function() {
 					});
 				});
 				return this;
-			},
+			}
 		});
 		
 		var enemy_encounter = Crafty.e("enemy_encounter").start(5000,guy);
