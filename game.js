@@ -5,7 +5,7 @@ window.onload = function() {
 
 	Crafty.extend({
 		__delay_entities: [],
-		delay: function(time,callback) {
+		delay_time: function(time,callback) {
 			this.__delay_entities.push(Crafty.e().attr({
 				start_time: new Date().getTime(),
 				delay_time: time,
@@ -13,6 +13,23 @@ window.onload = function() {
 			}).bind("enterframe",function() {
 				var now = new Date().getTime();
 				if(now - this.start_time >= this.delay_time) {
+					this.unbind("enterframe");
+					Crafty.__delay_entities.splice(this.index,1);
+					for(var i = this.index; i < Crafty.__delay_entities.length; ++i) {
+						Crafty.__delay_entities[i].index--;
+					}
+					callback();
+				}
+			}));
+		},
+		delay_frames: function(frames,callback) {
+			this.__delay_entities.push(Crafty.e().attr({
+				start_frame: Crafty.frame(),
+				delay_frame: frames,
+				index: this.__delay_entities.length
+			}).bind("enterframe",function() {
+				var now = Crafty.frame();
+				if(now - this.start_frame >= this.delay_frame) {
 					this.unbind("enterframe");
 					Crafty.__delay_entities.splice(this.index,1);
 					for(var i = this.index; i < Crafty.__delay_entities.length; ++i) {
@@ -96,7 +113,7 @@ window.onload = function() {
 				var fight_time = 2500;
 				var flee_time = 10000;
 				this.each(function() {
-					Crafty.delay(time,function() {
+					Crafty.delay_time(time,function() {
 						Crafty("parallax").stop();
 						var enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
 							.attr({x:90,y:5,z:1})
@@ -104,20 +121,20 @@ window.onload = function() {
 							.animate("walk_left",20,-1)
 							.tween({x:40}, 40);
 						player.tween({x:player.x+22},40);
-						Crafty.delay(800,function() {
+						Crafty.delay_frames(40,function() {
 							player.stop()
 								.animate("attack_right",10,-1);
 						});
 						if(Crafty.randRange(1,3) == 1) {
 							// Flee
-							Crafty.delay(fight_time,function() {
+							Crafty.delay_time(fight_time,function() {
 								player.stop()
 									.animate("walk_left",15,-1)
 									.tween({x:player.x-22},100);
 								enemy.tween({x:90},150);
 								Crafty("parallax").start(-1);
 
-								Crafty.delay(flee_time, function() {
+								Crafty.delay_time(flee_time, function() {
 									player.stop().animate("walk_right",20,-1);
 									Crafty("parallax").stop().start(-1);
 									enemy.destroy();
@@ -126,7 +143,7 @@ window.onload = function() {
 							});
 						} else {
 							// Victory
-							Crafty.delay(fight_time,function() {
+							Crafty.delay_time(fight_time,function() {
 								enemy.destroy();
 								player.stop()
 									.animate("walk_right",20,-1)
