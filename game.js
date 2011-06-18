@@ -258,7 +258,7 @@ window.onload = function() {
 							player.stop()
 								.animate("attack_right",10,-1);
 						});
-						if(Crafty(Crafty("Icon-flee")[0]).selected) {
+						if(flee_icon.selected) {
 							// Flee
 							Crafty.delay_time(fight_time,function() {
 								player.stop()
@@ -267,7 +267,7 @@ window.onload = function() {
 								enemy.tween({x:90},150);
 								Crafty("parallax").start(-1);
 								health -= 0.1;
-								if(health < 0) health = 0;
+								if(health < 0) health = 1;
 								health_bar.update(health);
 
 								Crafty.delay_time(flee_time, function() {
@@ -277,11 +277,11 @@ window.onload = function() {
 									Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
 								});
 							});
-						} else if(Crafty(Crafty("Icon-sword")[0]).selected) {
+						} else if(sword_icon.selected) {
 							// Victory
 							Crafty.delay_time(fight_time,function() {
 								health -= 0.25;
-								if(health < 0) health = 0;
+								if(health < 0) health = 1;
 								health_bar.update(health);
 								enemy.destroy();
 								player.stop()
