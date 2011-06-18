@@ -1,7 +1,6 @@
 window.onload = function() {
 	//start crafty
 	Crafty.init(88,31);
-	Crafty.canvas();
 
 	Crafty.extend({
 		__delay_entities: [],
@@ -70,7 +69,7 @@ window.onload = function() {
 
 	Crafty.scene("main",function() {
 		Crafty.c("parallax", {
-			width: Crafty._canvas.width,
+			width: Crafty.viewport.width,
 			parallax: function(speed,width)
 			{
 				this.each(function() {
@@ -84,9 +83,8 @@ window.onload = function() {
 			{
 				this.each(function() {
 					if(speed) this.speed *= speed;
-					var foo = this.speed;
 					this.bind("enterframe",function() {
-						this.x -= foo;
+						this.x -= this.speed;
 						if(this.x <= -(this.w-this.width)) this.x = 0;
 						if(this.x > 0) this.x = -(this.w-this.width);
 					});
@@ -102,12 +100,12 @@ window.onload = function() {
 			}
 		});
 
-		var layers = [Crafty.e("2D, DOM, image").image("layer0.png"),
-					  Crafty.e("2D, DOM, image, parallax").image("layer1.png").parallax(0.2),
-					  Crafty.e("2D, DOM, image, parallax").image("layer2.png").parallax(0.5),
-					  Crafty.e("2D, DOM, image, parallax").image("layer3.png").parallax(0.7)];
+		var layers = [Crafty.e("2D, DOM, Image").image("layer0.png"),
+					  Crafty.e("2D, DOM, Image, parallax").image("layer1.png").parallax(0.2),
+					  Crafty.e("2D, DOM, Image, parallax").image("layer2.png").parallax(0.5),
+					  Crafty.e("2D, DOM, Image, parallax").image("layer3.png").parallax(0.7)];
 
-		var guy = Crafty.e("2D, DOM, player, Animate, Tween")
+		var guy = Crafty.e("2D, DOM, player, SpriteAnimation, Tween")
 		  .attr({x:0,y:5,z:1})
 		  .animate("walk_right",6,0,9)
 		  .animate("walk_left",1,0,4)
@@ -207,7 +205,7 @@ window.onload = function() {
 				this.each(function() {
 					Crafty.delay_time(time,function() {
 						Crafty("parallax").stop();
-						var enemy = Crafty.e("2D, DOM, enemy, Animate, Tween")
+						var enemy = Crafty.e("2D, DOM, enemy, SpriteAnimation, Tween")
 										.attr({x:90,y:5,z:1})
 										.animate("walk_left",1,2,4)
 										.animate("walk_left",20,-1)
@@ -226,6 +224,7 @@ window.onload = function() {
 								enemy.tween({x:90},150);
 								Crafty("parallax").start(-1);
 								health -= 0.1;
+								if(health < 0) health = 0;
 								health_bar.update(health);
 
 								Crafty.delay_time(flee_time, function() {
@@ -239,6 +238,7 @@ window.onload = function() {
 							// Victory
 							Crafty.delay_time(fight_time,function() {
 								health -= 0.25;
+								if(health < 0) health = 0;
 								health_bar.update(health);
 								enemy.destroy();
 								player.stop()
