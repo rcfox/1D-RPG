@@ -105,7 +105,28 @@ window.onload = function() {
 					  Crafty.e("2D, DOM, Image, parallax").image("layer2.png").parallax(0.5),
 					  Crafty.e("2D, DOM, Image, parallax").image("layer3.png").parallax(0.7)];
 
-		var guy = Crafty.e("2D, DOM, player, SpriteAnimation, Tween")
+		Crafty.c("AutoHider", {
+			_auto_hide: "AutoHide",
+			init: function() {
+				if(!this.has("Mouse")) this.addComponent("Mouse");
+				this.bind("mouseover",function() {
+					Crafty("2D "+this._auto_hide).each(function() {
+						this.visible = true;
+					});
+				})
+				.bind("mouseout",function() {
+					Crafty("2D "+this._auto_hide).each(function() {
+						this.visible = false;
+					});
+				});
+				return this;
+			},
+			autohide: function(type) {
+				this._auto_hide = type;
+			}
+		});
+
+		var guy = Crafty.e("2D, DOM, player, SpriteAnimation, Tween, AutoHider")
 		  .attr({x:0,y:5,z:1})
 		  .animate("walk_right",6,0,9)
 		  .animate("walk_left",1,0,4)
@@ -122,6 +143,7 @@ window.onload = function() {
 				if(!this.has("Image")) this.addComponent("Image");
 				this.addComponent("Icon-"+name);
 
+				this.z = 2;
 				this.image(this._name+".png");
 				this.bind("mousedown", function() {
 					Crafty("Icon").select(false);
@@ -145,21 +167,41 @@ window.onload = function() {
 			}
 		});
 
-		var sword_icon = Crafty.e("2D, DOM, Icon").icon("sword").select(true)
-		  .bind("enterframe",function() {
-			  this.attr({x: guy.x+2, y: guy.y-2});
-		  });
+		Crafty.c("Follows", {
+			_target: null,
+			_x_offset: undefined,
+			_y_offset: undefined,
+			follow: function(target, x_offset, y_offset) {
+				this.each(function () {
+					this._target = target;
+					if(target.has("AutoHider"))
+					{
+						if(!this.has("AutoHider")) this.addComponent("AutoHider");
+						this.autohide(target._auto_hide);
+					}
+					if(typeof x_offset !== 'undefined') this._x_offset = x_offset;
+					if(typeof y_offset !== 'undefined') this._y_offset = y_offset;
+					this.bind("enterframe",function() {
+						if(typeof this._x_offset !== 'undefined') this.x = this._target.x + this._x_offset;
+						if(typeof this._y_offset !== 'undefined') this.y = this._target.y + this._y_offset;
+					});
+				});
+				return this;
+			}
+		});
 
+		var sword_icon = Crafty.e("2D, DOM, Icon, Follows, AutoHide")
+		  .icon("sword")
+		  .select(true)
+		  .follow(guy,2,-2);
 
-		var shield_icon = Crafty.e("2D, DOM, Image").image("shield.png")
-		  .bind("enterframe",function() {
-			  this.attr({x: sword_icon.x+sword_icon.w, y: guy.y-2});
-		  });
+		var shield_icon = Crafty.e("2D, DOM, Image, Follows, AutoHide")
+		  .image("shield.png")
+		  .follow(sword_icon,sword_icon.w,0);
 
-		var flee_icon = Crafty.e("2D, DOM, Icon").icon("flee")
-		  .bind("enterframe",function() {
-			  this.attr({x: shield_icon.x+shield_icon.w, y: guy.y-2});
-		  });
+		var flee_icon = Crafty.e("2D, DOM, Icon, Follows, AutoHide")
+		  .icon("flee")
+		  .follow(shield_icon,shield_icon.w,0);
 
 		Crafty.c("HealthBar", {
 			_outline: null,
@@ -184,16 +226,17 @@ window.onload = function() {
 			}
 		});
 
-		var health_bar = Crafty.e("2D, DOM, Image, HealthBar")
+		var health_bar = Crafty.e("2D, DOM, Image, HealthBar, Follows, AutoHide")
 		  .health_bar(guy.x+2,guy.y+9,3,15,"bar-filling.png")
-		  .bind("enterframe",function() {
-			  this.attr({x: guy.x+2});
-		  });
+		  .follow(guy,2);
 
-		var health_bar_frame = Crafty.e("2D, DOM, Image").image("bar-outline.png")
-		  .bind("enterframe",function() {
-			  this.attr({x: guy.x+2, y: guy.y+8});
-		  });
+		var health_bar_frame = Crafty.e("2D, DOM, Image, Follows, AutoHide")
+		  .image("bar-outline.png")
+		  .follow(guy,2,8);
+
+		Crafty("2D AutoHide").each(function() {
+			this.visible = false;
+		});
 
 		var health = 1.0;
 
