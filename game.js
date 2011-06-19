@@ -9,10 +9,10 @@ window.onload = function() {
 				start_time: new Date().getTime(),
 				delay_time: time,
 				index: this.__delay_entities.length
-			}).bind("enterframe",function() {
+			}).bind("EnterFrame",function() {
 				var now = new Date().getTime();
 				if(now - this.start_time >= this.delay_time) {
-					this.unbind("enterframe");
+					this.unbind("EnterFrame");
 					Crafty.__delay_entities.splice(this.index,1);
 					for(var i = this.index; i < Crafty.__delay_entities.length; ++i) {
 						Crafty.__delay_entities[i].index--;
@@ -27,10 +27,10 @@ window.onload = function() {
 				start_frame: Crafty.frame(),
 				delay_frame: frames,
 				index: this.__delay_entities.length
-			}).bind("enterframe",function() {
+			}).bind("EnterFrame",function() {
 				var now = Crafty.frame();
 				if(now - this.start_frame >= this.delay_frame) {
-					this.unbind("enterframe");
+					this.unbind("EnterFrame");
 					Crafty.__delay_entities.splice(this.index,1);
 					for(var i = this.index; i < Crafty.__delay_entities.length; ++i) {
 						Crafty.__delay_entities[i].index--;
@@ -83,7 +83,7 @@ window.onload = function() {
 			{
 				this.each(function() {
 					if(speed) this.speed *= speed;
-					this.bind("enterframe",function() {
+					this.bind("EnterFrame",function() {
 						this.x -= this.speed;
 						if(this.x <= -(this.w-this.width)) this.x = 0;
 						if(this.x > 0) this.x = -(this.w-this.width);
@@ -94,7 +94,7 @@ window.onload = function() {
 			stop: function()
 			{
 				this.each(function() {
-					this.unbind("enterframe");
+					this.unbind("EnterFrame");
 				});
 				return this;
 			}
@@ -109,12 +109,12 @@ window.onload = function() {
 			_auto_hide: "AutoHide",
 			init: function() {
 				if(!this.has("Mouse")) this.addComponent("Mouse");
-				this.bind("mouseover",function() {
+				this.bind("MouseOver",function() {
 					Crafty("2D "+this._auto_hide).each(function() {
 						this.visible = true;
 					});
 				})
-				.bind("mouseout",function() {
+				.bind("MouseOut",function() {
 					Crafty("2D "+this._auto_hide).each(function() {
 						this.visible = false;
 					});
@@ -145,7 +145,7 @@ window.onload = function() {
 
 				this.z = 2;
 				this.image(this._name+".png");
-				this.bind("mousedown", function() {
+				this.bind("MouseDown", function() {
 					Crafty("Icon").select(false);
 					this.select(true);
 				});
@@ -181,7 +181,7 @@ window.onload = function() {
 					}
 					if(typeof x_offset !== 'undefined') this._x_offset = x_offset;
 					if(typeof y_offset !== 'undefined') this._y_offset = y_offset;
-					this.bind("enterframe",function() {
+					this.bind("EnterFrame",function() {
 						if(typeof this._x_offset !== 'undefined') this.x = this._target.x + this._x_offset;
 						if(typeof this._y_offset !== 'undefined') this.y = this._target.y + this._y_offset;
 					});
