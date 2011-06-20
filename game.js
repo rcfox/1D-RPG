@@ -69,12 +69,13 @@ window.onload = function() {
 
 	Crafty.scene("main",function() {
 		Crafty.c("parallax", {
-			width: Crafty.viewport.width,
+			_parallax_width: Crafty.viewport.width,
 			parallax: function(speed,width)
 			{
 				this.each(function() {
 					if(speed) this.speed = speed;
-					if(width) this.width = width;
+					if(width) this._parallax_width = width;
+					this._extend_image();
 					this.start();
 				});
 				return this;
@@ -85,8 +86,8 @@ window.onload = function() {
 					if(speed) this.speed *= speed;
 					this.bind("EnterFrame",function() {
 						this.x -= this.speed;
-						if(this.x <= -(this.w-this.width)) this.x = 0;
-						if(this.x > 0) this.x = -(this.w-this.width);
+						if(this.x <= -(this.w-this._parallax_width)) this.x = 0;
+						if(this.x > 0) this.x = -(this.w-this._parallax_width);
 					});
 				});
 				return this;
@@ -97,6 +98,19 @@ window.onload = function() {
 					this.unbind("EnterFrame");
 				});
 				return this;
+			},
+			_extend_image: function() {
+				var canvas = document.createElement('canvas');
+				var canvasContext = canvas.getContext('2d');
+
+				var imgW = this.img.width;
+				var imgH = this.img.height;
+				canvas.width = imgW + this._parallax_width;
+				canvas.height = imgH;
+				canvasContext.drawImage(this.img, 0, 0);
+				canvasContext.putImageData(canvasContext.getImageData(0, 0, imgW, imgH),imgW,0);
+
+				this.image(canvas.toDataURL());
 			}
 		});
 
