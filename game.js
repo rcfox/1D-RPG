@@ -176,6 +176,24 @@ window.onload = function() {
 	});
 	//}
 
+	Crafty.c("Foreground", {
+		//{
+		_target: null,
+		_orig_x: undefined,
+		init: function() {
+			this._target = Crafty(Crafty("player")[0]);
+			this.bind("EnterFrame",function() {
+				this._orig_x = this.x;
+				this.unbind("EnterFrame",arguments.callee);
+				this.bind("EnterFrame",function() {
+					this.x = this._orig_x - this._target.dist;
+				});
+			});
+			return this;
+		}
+	});
+	//}
+
 	Crafty.c("HealthBar", {
 		//{
 		_outline: null,
@@ -214,6 +232,7 @@ window.onload = function() {
 					 "sword.png","sword-glow.png",
 					 "shield.png","shield-glow.png",
 					 "flee.png","flee-glow.png",
+					 "door.png",
 					 "bar-outline.png","bar-filling.png"], function() {
 						 Crafty.scene("main"); //when everything is loaded, run the main scene
 					 });
@@ -235,11 +254,19 @@ window.onload = function() {
 
 
 		var guy = Crafty.e("2D, DOM, player, SpriteAnimation, Tween, AutoHider")
-		  .attr({x:0,y:5,z:1})
+		  .attr({paused:false,dist:0,x:0,y:5,z:1,direction: 1})
 		  .animate("walk_right",6,0,9)
 		  .animate("walk_left",1,0,4)
 		  .animate("attack_right",0,1,2)
-		  .animate("walk_right",20,-1);
+		  .animate("walk_right",20,-1)
+		  .bind("EnterFrame",function() {
+			  if(!this.paused && Crafty.frame() % 2)
+			  {
+				  this.dist += this.direction;
+			  }
+		  });
+
+		var door = Crafty.e("2D, DOM, Image, Foreground").image("door.png").x = 600;
 
 		var sword_icon = Crafty.e("2D, DOM, Icon, Follows, AutoHide")
 		  .icon("sword")
@@ -254,7 +281,6 @@ window.onload = function() {
 		  .icon("flee")
 		  .follow(shield_icon,shield_icon.w,0);
 
-
 		var health_bar = Crafty.e("2D, DOM, Image, HealthBar, Follows, AutoHide")
 		  .health_bar(guy.x+2,guy.y+9,3,15,"bar-filling.png")
 		  .follow(guy,2);
@@ -266,6 +292,11 @@ window.onload = function() {
 		Crafty("2D AutoHide").each(function() {
 			this.visible = false;
 		});
+
+		var dude = Crafty.e("2D, DOM, enemy, SpriteAnimation, Tween, Foreground")
+		  .attr({x:90,y:5,z:1})
+		  .animate("walk_left",1,2,4)
+		  .animate("walk_left",20,-1);
 
 		var health = 1.0;
 		var walk_time = 8000;
@@ -279,7 +310,7 @@ window.onload = function() {
 			.animate("walk_left",1,2,4)
 			.animate("walk_left",20,-1)
 			.tween({x:40}, 40);
-				guy.tween({x:guy.x+22},40);
+				guy.tween({x:guy.x+22},40).paused = true;;
 				Crafty.delay_frames(40,function() {
 					guy.stop()
 						.animate("attack_right",10,-1);
@@ -289,7 +320,7 @@ window.onload = function() {
 					Crafty.delay_time(fight_time,function() {
 						guy.stop()
 							.animate("walk_left",15,-1)
-							.tween({x:guy.x-22},100);
+							.tween({x:guy.x-22},100).attr({paused: false, direction:-1});
 						enemy.tween({x:90},150);
 						Crafty("Parallax").start(-1);
 						health -= 0.1;
@@ -297,7 +328,7 @@ window.onload = function() {
 						health_bar.update(health);
 
 						Crafty.delay_time(flee_time, function() {
-							guy.stop().animate("walk_right",20,-1);
+							guy.stop().animate("walk_right",20,-1).direction = 1;
 							Crafty("Parallax").stop().start(-1);
 							enemy.destroy();
 							demo();
@@ -312,7 +343,7 @@ window.onload = function() {
 						enemy.destroy();
 						guy.stop()
 							.animate("walk_right",20,-1)
-							.tween({x:guy.x-22},200);
+							.tween({x:guy.x-22},200).paused = false;
 						Crafty("Parallax").start();
 						demo();
 					});
