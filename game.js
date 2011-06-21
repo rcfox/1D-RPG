@@ -268,64 +268,57 @@ window.onload = function() {
 		});
 
 		var health = 1.0;
-
-		Crafty.c("enemy_encounter", {
-			start: function(time,player)
-			{
-				var fight_time = 2500;
-				var flee_time = 10000;
-				this.each(function() {
-					Crafty.delay_time(time,function() {
-						Crafty("Parallax").stop();
-						var enemy = Crafty.e("2D, DOM, enemy, SpriteAnimation, Tween")
-										.attr({x:90,y:5,z:1})
-										.animate("walk_left",1,2,4)
-										.animate("walk_left",20,-1)
-										.tween({x:40}, 40);
-						player.tween({x:player.x+22},40);
-						Crafty.delay_frames(40,function() {
-							player.stop()
-								.animate("attack_right",10,-1);
-						});
-						if(flee_icon.selected) {
-							// Flee
-							Crafty.delay_time(fight_time,function() {
-								player.stop()
-									.animate("walk_left",15,-1)
-									.tween({x:player.x-22},100);
-								enemy.tween({x:90},150);
-								Crafty("Parallax").start(-1);
-								health -= 0.1;
-								if(health < 0) health = 1;
-								health_bar.update(health);
-
-								Crafty.delay_time(flee_time, function() {
-									player.stop().animate("walk_right",20,-1);
-									Crafty("Parallax").stop().start(-1);
-									enemy.destroy();
-									Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
-								});
-							});
-						} else if(sword_icon.selected) {
-							// Victory
-							Crafty.delay_time(fight_time,function() {
-								health -= 0.25;
-								if(health < 0) health = 1;
-								health_bar.update(health);
-								enemy.destroy();
-								player.stop()
-									.animate("walk_right",20,-1)
-									.tween({x:player.x-22},200);
-								Crafty("Parallax").start();
-								Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
-							});
-						}
-					});
+		var walk_time = 8000;
+		var fight_time = 2500;
+		var flee_time = 10000;
+		function demo() {
+			Crafty.delay_time(walk_time,function() {
+				Crafty("Parallax").stop();
+				var enemy = Crafty.e("2D, DOM, enemy, SpriteAnimation, Tween")
+			.attr({x:90,y:5,z:1})
+			.animate("walk_left",1,2,4)
+			.animate("walk_left",20,-1)
+			.tween({x:40}, 40);
+				guy.tween({x:guy.x+22},40);
+				Crafty.delay_frames(40,function() {
+					guy.stop()
+						.animate("attack_right",10,-1);
 				});
-				return this;
-			}
-		});
+				if(flee_icon.selected) {
+					// Flee
+					Crafty.delay_time(fight_time,function() {
+						guy.stop()
+							.animate("walk_left",15,-1)
+							.tween({x:guy.x-22},100);
+						enemy.tween({x:90},150);
+						Crafty("Parallax").start(-1);
+						health -= 0.1;
+						if(health < 0) health = 1;
+						health_bar.update(health);
 
-		var enemy_encounter = Crafty.e("enemy_encounter").start(5000,guy);
+						Crafty.delay_time(flee_time, function() {
+							guy.stop().animate("walk_right",20,-1);
+							Crafty("Parallax").stop().start(-1);
+							enemy.destroy();
+							demo();
+						});
+					});
+				} else if(sword_icon.selected) {
+					// Victory
+					Crafty.delay_time(fight_time,function() {
+						health -= 0.25;
+						if(health < 0) health = 1;
+						health_bar.update(health);
+						enemy.destroy();
+						guy.stop()
+							.animate("walk_right",20,-1)
+							.tween({x:guy.x-22},200);
+						Crafty("Parallax").start();
+						demo();
+					});
+				}
+			});
+		}
+		demo();
 	});
 };
