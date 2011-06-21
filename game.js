@@ -44,7 +44,7 @@ window.onload = function() {
 	});
 	//}
 
-	Crafty.c("parallax", {
+	Crafty.c("Parallax", {
 		//{
 		_parallax_width: Crafty.viewport.width,
 		parallax: function(speed,width)
@@ -229,9 +229,9 @@ window.onload = function() {
 	Crafty.scene("main",function() {
 
 		var layers = [Crafty.e("2D, DOM, Image").image("layer0.png"),
-					  Crafty.e("2D, DOM, Image, parallax").image("layer1.png").parallax(0.2),
-					  Crafty.e("2D, DOM, Image, parallax").image("layer2.png").parallax(0.5),
-					  Crafty.e("2D, DOM, Image, parallax").image("layer3.png").parallax(0.7)];
+					  Crafty.e("2D, DOM, Image, Parallax").image("layer1.png").parallax(0.2),
+					  Crafty.e("2D, DOM, Image, Parallax").image("layer2.png").parallax(0.5),
+					  Crafty.e("2D, DOM, Image, Parallax").image("layer3.png").parallax(0.7)];
 
 
 		var guy = Crafty.e("2D, DOM, player, SpriteAnimation, Tween, AutoHider")
@@ -276,7 +276,7 @@ window.onload = function() {
 				var flee_time = 10000;
 				this.each(function() {
 					Crafty.delay_time(time,function() {
-						Crafty("parallax").stop();
+						Crafty("Parallax").stop();
 						var enemy = Crafty.e("2D, DOM, enemy, SpriteAnimation, Tween")
 										.attr({x:90,y:5,z:1})
 										.animate("walk_left",1,2,4)
@@ -294,14 +294,14 @@ window.onload = function() {
 									.animate("walk_left",15,-1)
 									.tween({x:player.x-22},100);
 								enemy.tween({x:90},150);
-								Crafty("parallax").start(-1);
+								Crafty("Parallax").start(-1);
 								health -= 0.1;
 								if(health < 0) health = 1;
 								health_bar.update(health);
 
 								Crafty.delay_time(flee_time, function() {
 									player.stop().animate("walk_right",20,-1);
-									Crafty("parallax").stop().start(-1);
+									Crafty("Parallax").stop().start(-1);
 									enemy.destroy();
 									Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
 								});
@@ -316,7 +316,7 @@ window.onload = function() {
 								player.stop()
 									.animate("walk_right",20,-1)
 									.tween({x:player.x-22},200);
-								Crafty("parallax").start();
+								Crafty("Parallax").start();
 								Crafty("enemy_encounter").start(Crafty.randRange(5000,10000),player);
 							});
 						}
